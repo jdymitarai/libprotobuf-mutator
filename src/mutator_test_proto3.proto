@@ -106,3 +106,7 @@ message Msg3 {
 
   google.protobuf.Any any = 90;
 }
+
+message RepeatedBoolMessage {
+  repeated bool values = 1;
+}

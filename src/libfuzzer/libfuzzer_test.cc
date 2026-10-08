@@ -16,6 +16,7 @@
 #include "port/protobuf.h"
 #include "src/libfuzzer/libfuzzer_macro.h"
 #include "src/mutator_test_proto2.pb.h"
+#include "src/mutator_test_proto3.pb.h"
 
 using protobuf_mutator::protobuf::util::MessageDifferencer;
 using ::testing::_;
@@ -94,4 +95,37 @@ TEST(LibFuzzerTest, LLVMFuzzerCustomCrossOver) {
       LLVMFuzzerCustomCrossOver(buff1, 0, buff2, 0, buff3, sizeof(buff3), 6);
   ASSERT_GT(size, 0U);
   LLVMFuzzerTestOneInput(buff3, size);
+}
+
+TEST(LibFuzzerTest, RepeatedBoolMutation) {
+  protobuf_mutator::RepeatedBoolMessage msg1;
+  protobuf_mutator::RepeatedBoolMessage msg2;
+  for (int i = 0; i < 10; ++i) {
+    msg1.add_values(i % 2 == 0);
+    msg2.add_values(i % 2 != 0);
+  }
+  uint8_t buff1[2048] = {};
+  uint8_t buff2[2048] = {};
+  uint8_t buff3[2048] = {};
+
+  size_t size1 = msg1.ByteSizeLong();
+  msg1.SerializeToArray(buff1, size1);
+
+  size_t size2 = msg2.ByteSizeLong();
+  msg2.SerializeToArray(buff2, size2);
+
+  for (int i = 0; i < 5000; ++i) {
+    size1 = protobuf_mutator::libfuzzer::CustomProtoMutator(
+        true, buff1, size1, sizeof(buff1), i + 1, &msg1);
+    ASSERT_GT(size1, 0U);
+
+    size2 = protobuf_mutator::libfuzzer::CustomProtoMutator(
+        true, buff2, size2, sizeof(buff2), i + 2, &msg2);
+    ASSERT_GT(size2, 0U);
+
+    size_t size3 = protobuf_mutator::libfuzzer::CustomProtoCrossOver(
+        true, buff1, size1, buff2, size2, buff3, sizeof(buff3), i + 3, &msg1,
+        &msg2);
+    ASSERT_GT(size3, 0U);
+  }
 }

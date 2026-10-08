@@ -60,6 +60,16 @@ LIB_PROTO_MUTATOR_WEAK_DEF(size_t, LLVMFuzzerMutate, uint8_t*, size_t, size_t) {
   return 0;
 }
 
+#if defined(__SANITIZE_ADDRESS__) || defined(ADDRESS_SANITIZER) || \
+    (defined(__has_feature) && __has_feature(address_sanitizer))
+// Disable container overflow detection by default to avoid false positives
+// with protobuf RepeatedField container annotations on mixed-instrumentation
+// builds (e.g. repeated bool). Can be overridden by user-defined options.
+LIB_PROTO_MUTATOR_WEAK_DEF(const char*, __asan_default_options) {
+  return "detect_container_overflow=0";
+}
+#endif
+
 namespace protobuf_mutator {
 namespace libfuzzer {
 
