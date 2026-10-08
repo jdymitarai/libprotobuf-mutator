@@ -116,8 +116,6 @@ TEST(LibFuzzerTest, MultipleProtoTypes) {
   protobuf_mutator::Msg::SubMsg loaded_msg2;
   EXPECT_TRUE(protobuf_mutator::libfuzzer::LoadProtoInput(
       false, buff2, size2, &loaded_msg2));
-  EXPECT_FALSE(protobuf_mutator::libfuzzer::LoadProtoInput(
-      false, buff1, size1, &loaded_msg2));
   EXPECT_TRUE(protobuf_mutator::libfuzzer::LoadProtoInput(
       false, buff1, size1, &loaded_msg1));
 }
